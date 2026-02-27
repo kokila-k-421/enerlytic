@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enerlytics · Multi-User Live Monitoring</title>
+    <style>
+      /* ========== GLOBAL STYLES WITH ELECTRICAL THEME ========== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #0a0f1e;
+        position: relative;
+        color: white;
+        overflow-x: hidden;
+      }
+
+      /* Electrical circuit background */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(
+            rgba(0, 255, 255, 0.03) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(255, 215, 0, 0.03) 1px, transparent 1px);
+        background-size: 30px 30px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Animated lightning bolts */
+      .lightning {
+        position: fixed;
+        width: 2px;
+        height: 100px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          #00ffff,
+          transparent
+        );
+        animation: lightningFlash 3s infinite;
+        opacity: 0.3;
+        z-index: 0;
+      }
+
+      .lightning:nth-child(1) {
+        left: 10%;
+        top: 20%;
+        transform: rotate(15deg);
+        animation-delay: 0.5s;
+      }
+      .lightning:nth-child(2) {
+        right: 15%;
+        top: 40%;
+        transform: rotate(-10deg);
+        animation-delay: 1.2s;
+      }
+      .lightning:nth-child(3) {
+        left: 20%;
+        bottom: 30%;
+        transform: rotate(25deg);
+        animation-delay: 2s;
+      }
+      .lightning:nth-child(4) {
+        right: 25%;
+        bottom: 10%;
+        transform: rotate(-5deg);
+        animation-delay: 0.8s;
+      }
+      .lightning:nth-child(5) {
+        left: 40%;
+        top: 60%;
+        transform: rotate(30deg);
+        animation-delay: 1.5s;
+      }
+
+      @keyframes lightningFlash {
+        0%,
+        100% {
+          opacity: 0.1;
+          height: 50px;
+        }
+        50% {
+          opacity: 0.8;
+          height: 150px;
+          box-shadow: 0 0 30px cyan;
+        }
+      }
+
+      /* Floating voltage symbols */
+      .voltage-symbol {
+        position: fixed;
+        font-size: 1.5rem;
+        color: rgba(0, 255, 255, 0.1);
+        animation: float 6s infinite ease-in-out;
+        z-index: 0;
+      }
+
+      .voltage-symbol:nth-child(6) {
+        top: 15%;
+        left: 5%;
+        animation-delay: 0s;
+      }
+      .voltage-symbol:nth-child(7) {
+        top: 75%;
+        right: 8%;
+        animation-delay: 1s;
+      }
+      .voltage-symbol:nth-child(8) {
+        bottom: 20%;
+        left: 15%;
+        animation-delay: 2s;
+      }
+      .voltage-symbol:nth-child(9) {
+        top: 45%;
+        right: 20%;
+        animation-delay: 3s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0.1;
+        }
+        50% {
+          transform: translateY(-20px) rotate(10deg);
+          opacity: 0.3;
+        }
+      }
+
+      /* ========== GLASSMORPHISM COMPONENTS ========== */
+      .glass-card {
+        background: rgba(10, 20, 40, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 2.2rem;
+        box-shadow: 0 20px 40px -15px rgba(0, 255, 255, 0.2);
+        position: relative;
+        z-index: 1;
+      }
+
+      .glass-panel {
+        background: rgba(10, 20, 40, 0.5);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 2.2rem;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ========== HEADER ========== */
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        background: rgba(0, 5, 15, 0.7);
+        backdrop-filter: blur(12px);
+        border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .logo {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00ffff, #ffff00);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        cursor: pointer;
+        text-shadow: 0 0 20px cyan;
+      }
+
+      .btn {
+        padding: 0.7rem 1.8rem;
+        border-radius: 3rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 1rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #00ffff, #0088ff);
+        color: white;
+        box-shadow: 0 0 20px cyan;
+      }
+
+      .btn-primary:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px cyan;
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 2px solid #00ffff;
+        color: #00ffff;
+      }
+
+      .btn-outline:hover {
+        background: rgba(0, 255, 255, 0.1);
+        box-shadow: 0 0 20px cyan;
+      }
+
+      .btn-danger {
+        background: #ff3333;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 0 20px #ff3333;
+      }
+
+      .btn-danger:hover {
+        background: #ff0000;
+        box-shadow: 0 0 40px #ff0000;
+      }
+
+      .btn-success {
+        background: #00cc88;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 0 20px #00cc88;
+      }
+
+      .btn-success:hover {
+        background: #00aa66;
+        box-shadow: 0 0 40px #00cc88;
+      }
+
+      /* ========== PAGE CONTAINERS ========== */
+      .page {
+        display: none;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .page.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ========== AUTH PAGES ========== */
+      .auth-container {
+        max-width: 460px;
+        margin: 3rem auto;
+      }
+
+      .auth-card {
+        background: rgba(10, 20, 40, 0.8);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(0, 255, 255, 0.3);
+        border-radius: 2.5rem;
+        padding: 2.5rem;
+      }
+
+      .auth-card h2 {
+        font-size: 2.2rem;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #00ffff, #ffff00);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: #88aaff;
+        font-weight: 500;
+      }
+
+      .input-group input,
+      .input-group select,
+      .input-group textarea {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1.5px solid #00ffff;
+        border-radius: 3rem;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+        transition: 0.2s;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus,
+      .input-group textarea:focus {
+        border-color: #ffff00;
+        box-shadow: 0 0 20px cyan;
+      }
+
+      .input-group input[readonly] {
+        background: rgba(0, 0, 0, 0.5);
+        color: #ffff00;
+        font-weight: 600;
+      }
+
+      .error-msg {
+        color: #ff6666;
+        font-size: 0.85rem;
+        margin-top: 0.3rem;
+        margin-left: 1rem;
+      }
+
+      .success-msg {
+        background: rgba(0, 255, 0, 0.2);
+        border: 1px solid #00ff00;
+        color: #a0ffa0;
+        padding: 1rem;
+        border-radius: 3rem;
+        text-align: center;
+        margin-top: 1.5rem;
+      }
+
+      .auth-link {
+        text-align: center;
+        margin-top: 1.8rem;
+        color: #88aaff;
+      }
+
+      .auth-link span {
+        color: #ffff00;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .auth-link span:hover {
+        text-decoration: underline;
+      }
+
+      /* ========== DASHBOARD ========== */
+      .user-badge {
+        background: rgba(0, 255, 255, 0.2);
+        border: 1px solid cyan;
+        padding: 0.5rem 1.5rem;
+        border-radius: 2rem;
+        font-weight: 500;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      @media (max-width: 700px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .meter-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+        margin: 1.5rem 0;
+      }
+
+      .meter-item .value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #ffff00;
+        text-shadow: 0 0 20px yellow;
+      }
+
+      .meter-item .unit {
+        color: #88aaff;
+        margin-top: 0.3rem;
+      }
+
+      .consumption {
+        text-align: center;
+        margin-top: 1.8rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.3);
+      }
+
+      .big-number {
+        font-size: 3.2rem;
+        font-weight: 700;
+        color: #ffff00;
+        text-shadow: 0 0 20px yellow;
+        line-height: 1.2;
+      }
+
+      /* Alert Banner */
+      .alert-banner {
+        background: rgba(255, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        border: 2px solid #ff3333;
+        border-radius: 3rem;
+        padding: 1.2rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        animation: blinkRed 1.2s infinite;
+      }
+
+      @keyframes blinkRed {
+        0% {
+          box-shadow: 0 0 20px #ff3333;
+        }
+        50% {
+          box-shadow: 0 0 60px #ff0000;
+          background: rgba(255, 0, 0, 0.4);
+        }
+        100% {
+          box-shadow: 0 0 20px #ff3333;
+        }
+      }
+
+      /* ========== APPLIANCES SECTION ========== */
+      .appliance-section {
+        margin-top: 2rem;
+      }
+
+      .appliance-controls {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .appliance-controls {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .appliance-controls select,
+      .appliance-controls input {
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1.5px solid #00ffff;
+        border-radius: 2rem;
+        color: white;
+      }
+
+      .appliance-list {
+        margin: 1.5rem 0;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+
+      .appliance-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 1rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .appliance-item .name {
+        color: #88aaff;
+        flex: 2;
+      }
+
+      .appliance-item .details {
+        color: #ffff00;
+        flex: 1;
+        text-align: center;
+      }
+
+      .appliance-item .units {
+        color: #ffff00;
+        font-weight: 600;
+        flex: 1;
+        text-align: right;
+      }
+
+      .appliance-item .remove-btn {
+        background: #ff3333;
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        margin-left: 1rem;
+      }
+
+      .total-appliance-units {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid cyan;
+        padding: 1rem;
+        border-radius: 2rem;
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.2rem;
+        margin: 1rem 0;
+      }
+
+      .bill-breakdown {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid cyan;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+      }
+
+      .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+      }
+
+      .breakdown-total {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        color: #ffff00;
+        font-size: 1.3rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid cyan;
+      }
+
+      /* ========== FEEDBACK REPORT SECTION ========== */
+      .feedback-section {
+        margin-top: 2rem;
+        padding: 2rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid cyan;
+        border-radius: 2rem;
+      }
+
+      .feedback-title {
+        font-size: 1.8rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        text-shadow: 0 0 20px cyan;
+      }
+
+      .feedback-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .feedback-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid cyan;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+      }
+
+      .feedback-card h4 {
+        color: #ffff00;
+        margin-bottom: 0.8rem;
+      }
+
+      .feedback-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+      }
+
+      .feedback-label {
+        color: #88aaff;
+        font-size: 0.9rem;
+      }
+
+      .recommendation-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        margin: 0.5rem 0;
+      }
+
+      .badge-success {
+        background: #00cc88;
+        color: white;
+      }
+
+      .badge-warning {
+        background: #ffaa00;
+        color: white;
+      }
+
+      .badge-danger {
+        background: #ff3333;
+        color: white;
+      }
+
+      .savings-tip {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid cyan;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* ========== CONTACT PAGE ========== */
+      .complaint-id-box {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid cyan;
+        border-radius: 2rem;
+        padding: 1.2rem;
+        text-align: center;
+        margin: 1.5rem 0;
+      }
+
+      .emergency-section {
+        margin-top: 2rem;
+        text-align: center;
+      }
+
+      .emergency-numbers {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+
+      .emergency-numbers a {
+        background: #ff3333;
+        color: white;
+        text-decoration: none;
+        padding: 1rem 2rem;
+        border-radius: 3rem;
+        font-weight: 700;
+        flex: 1;
+        min-width: 180px;
+        border: 1px solid #ff6666;
+      }
+
+      .emergency-numbers a:hover {
+        background: #ff0000;
+        box-shadow: 0 0 30px #ff0000;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .flex-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+      }
+
+      .calculate-btn {
+        background: linear-gradient(135deg, #00ffff, #0088ff);
+        color: white;
+        font-weight: 700;
+        padding: 1rem;
+        border-radius: 2rem;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+        margin: 1rem 0;
+      }
+
+      .calculate-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px cyan;
+      }
+
+      .generate-report-btn {
+        background: linear-gradient(135deg, #00cc88, #00aa66);
+        color: white;
+        font-weight: 700;
+        padding: 1rem;
+        border-radius: 2rem;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+        margin: 1rem 0;
+      }
+
+      .generate-report-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px #00cc88;
+      }
+
+      .pay-now-btn {
+        background: linear-gradient(135deg, #ffaa00, #ff8800);
+        color: white;
+        font-weight: 700;
+        padding: 1rem;
+        border-radius: 2rem;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+        margin: 1rem 0;
+      }
+
+      .pay-now-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px #ffaa00;
+      }
+
+      /* Payment Gateway Buttons */
+      .gateway-btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        margin: 0.5rem;
+        border-radius: 3rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s;
+        border: none;
+        cursor: pointer;
+      }
+
+      .gpay-btn {
+        background: #4285f4;
+        color: white;
+      }
+
+      .gpay-btn:hover {
+        background: #3367d6;
+        transform: scale(1.05);
+      }
+
+      .phonepe-btn {
+        background: #5f259f;
+        color: white;
+      }
+
+      .phonepe-btn:hover {
+        background: #4a1d7a;
+        transform: scale(1.05);
+      }
+
+      .paytm-btn {
+        background: #00baf2;
+        color: white;
+      }
+
+      .paytm-btn:hover {
+        background: #0095c2;
+        transform: scale(1.05);
+      }
+
+      .bhim-btn {
+        background: #ff9933;
+        color: white;
+      }
+
+      .bhim-btn:hover {
+        background: #cc7a29;
+        transform: scale(1.05);
+      }
+
+      .card-btn {
+        background: #2f6eff;
+        color: white;
+      }
+
+      .card-btn:hover {
+        background: #1d4ed8;
+        transform: scale(1.05);
+      }
+
+      .netbanking-btn {
+        background: #10b981;
+        color: white;
+      }
+
+      .netbanking-btn:hover {
+        background: #059669;
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Electrical background elements -->
+    <div class="lightning"></div>
+    <div class="lightning"></div>
+    <div class="lightning"></div>
+    <div class="lightning"></div>
+    <div class="lightning"></div>
+    <div class="voltage-symbol">⚡</div>
+    <div class="voltage-symbol">⚡</div>
+    <div class="voltage-symbol">⚡</div>
+    <div class="voltage-symbol">⚡</div>
+
+    <!-- ========== HEADER ========== -->
+    <header class="app-header">
+      <div class="logo" onclick="showPage('home')">⚡ Enerlytics</div>
+      <div id="headerActions" class="header-actions">
+        <!-- Only one set of auth buttons - initially visible -->
+        <button class="btn btn-primary" id="loginBtn">Login</button>
+      </div>
+    </header>
+
+    <!-- ========== HOME PAGE ========== -->
+    <div id="homePage" class="page active">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2>⚡ Welcome to Enerlytics</h2>
+          <p style="color: #88aaff; margin-bottom: 2rem; font-size: 1.2rem">
+            Multi-user live electricity monitoring with real payment gateway
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center">
+            <button class="btn btn-primary" onclick="showPage('login')">
+              Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== LOGIN PAGE ========== -->
+    <div id="loginPage" class="page">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2>Login</h2>
+          <form id="loginForm">
+            <div class="input-group">
+              <label>Username or EB Number</label>
+              <input
+                type="text"
+                id="loginIdentifier"
+                placeholder="Enter username or EB number"
+              />
+            </div>
+            <div class="input-group">
+              <label>Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="••••••••"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">
+              Login
+            </button>
+          </form>
+          <div
+            id="loginError"
+            class="error-msg hidden"
+            style="text-align: center; margin-top: 1rem"
+          ></div>
+          <div class="auth-link">
+            New user? <span onclick="showPage('register')">Create account</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== REGISTER PAGE ========== -->
+    <div id="registerPage" class="page">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2>Create Account</h2>
+          <form id="registerForm">
+            <div class="input-group">
+              <label>Username (letters only)</label>
+              <input type="text" id="regUsername" placeholder="johndoe" />
+              <div class="error-msg" id="regUsernameError"></div>
+            </div>
+            <div class="input-group">
+              <label>Email</label>
+              <input
+                type="email"
+                id="regEmail"
+                placeholder="john@example.com"
+              />
+              <div class="error-msg" id="regEmailError"></div>
+            </div>
+            <div class="input-group">
+              <label>Mobile (10 digits)</label>
+              <input type="tel" id="regMobile" placeholder="9876543210" />
+              <div class="error-msg" id="regMobileError"></div>
+            </div>
+            <div class="input-group">
+              <label>EB Number (alphanumeric)</label>
+              <input type="text" id="regEb" placeholder="EB123456" />
+              <div class="error-msg" id="regEbError"></div>
+            </div>
+            <div class="input-group">
+              <label>Password (letters + numbers)</label>
+              <input type="password" id="regPassword" placeholder="••••••••" />
+              <div class="error-msg" id="regPasswordError"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">
+              Register
+            </button>
+          </form>
+          <div id="registerSuccess" class="success-msg hidden">
+            ✅ Registration Successful! Redirecting to login...
+          </div>
+          <div class="auth-link">
+            Already have an account?
+            <span onclick="showPage('login')">Login here</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DASHBOARD PAGE ========== -->
+    <div id="dashboardPage" class="page">
+      <!-- Voltage Alert Banner (Common for all homes) -->
+      <div id="voltageAlert" class="alert-banner hidden">
+        <span style="font-size: 1.4rem; font-weight: 600"
+          >⚡ Grid Voltage Fluctuation Detected!</span
+        >
+        <span id="voltageMessage">Current voltage affecting all users</span>
+        <button class="btn btn-danger" onclick="showPage('contact')">
+          📞 Report to EB Office
+        </button>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Live Meter Card (Common Monitoring) -->
+        <div class="glass-panel">
+          <h2 style="margin-bottom: 1rem">⚡ Grid Live Monitoring</h2>
+          <p style="color: #88aaff; margin-bottom: 0.5rem">
+            Common for all connected users
+          </p>
+          <div class="meter-grid">
+            <div class="meter-item">
+              <div class="value" id="voltage">230</div>
+              <div class="unit">Voltage (V)</div>
+            </div>
+            <div class="meter-item">
+              <div class="value" id="current">7.2</div>
+              <div class="unit">Current (A)</div>
+            </div>
+            <div class="meter-item">
+              <div class="value" id="power">1656</div>
+              <div class="unit">Power (W)</div>
+            </div>
+          </div>
+          <div class="consumption">
+            <div style="color: #88aaff">Grid Status</div>
+            <div class="big-number" id="gridStatus">Stable</div>
+          </div>
+        </div>
+
+        <!-- Quick Query Card -->
+        <div class="glass-panel">
+          <h2 style="margin-bottom: 1rem">📝 Quick Query</h2>
+          <p style="color: #88aaff; margin-bottom: 0.5rem">
+            Describe your issue
+          </p>
+          <textarea
+            id="queryText"
+            rows="4"
+            placeholder="I'm experiencing..."
+          ></textarea>
+          <button
+            class="btn btn-primary"
+            id="submitQueryBtn"
+            style="width: 100%; margin-top: 1rem"
+          >
+            Submit Query
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== APPLIANCES SECTION (No wattage display) ========== -->
+      <div class="glass-panel appliance-section">
+        <h2 style="margin-bottom: 1.5rem">🔌 Your Appliances</h2>
+
+        <div class="appliance-controls">
+          <select id="applianceSelect">
+            <option value="ac">Air Conditioner</option>
+            <option value="ac2">Air Conditioner (2 Ton)</option>
+            <option value="ac3">Air Conditioner (1 Ton)</option>
+            <option value="fridge">Refrigerator</option>
+            <option value="fridge2">Refrigerator (Double Door)</option>
+            <option value="tv">LED TV</option>
+            <option value="tv2">Smart TV</option>
+            <option value="fan">Ceiling Fan</option>
+            <option value="fan2">Table Fan</option>
+            <option value="wm">Washing Machine</option>
+            <option value="dryer">Clothes Dryer</option>
+            <option value="microwave">Microwave Oven</option>
+            <option value="geyser">Water Geyser</option>
+            <option value="iron">Electric Iron</option>
+            <option value="computer">Desktop Computer</option>
+            <option value="laptop">Laptop</option>
+            <option value="router">WiFi Router</option>
+            <option value="charger">Phone Charger</option>
+            <option value="waterpump">Water Pump</option>
+            <option value="heater">Room Heater</option>
+            <option value="custom">Custom Appliance</option>
+          </select>
+          <input
+            type="number"
+            id="applianceHours"
+            placeholder="Hours"
+            min="0.5"
+            step="0.5"
+            value="1"
+          />
+          <input
+            type="number"
+            id="applianceQuantity"
+            placeholder="Quantity"
+            min="1"
+            value="1"
+          />
+        </div>
+
+        <div class="flex-row">
+          <button class="btn btn-success" id="addApplianceBtn" style="flex: 1">
+            ➕ Add Appliance
+          </button>
+          <button
+            class="btn btn-outline"
+            id="clearAppliancesBtn"
+            style="flex: 1"
+          >
+            Clear All
+          </button>
+        </div>
+
+        <!-- Calculate Bill Button -->
+        <button class="calculate-btn" id="calculateBillBtn">
+          🧮 Calculate Your Bill
+        </button>
+
+        <!-- Pay Now Button -->
+        <button class="pay-now-btn" id="payNowBtn">💳 Pay Now</button>
+
+        <!-- Generate Feedback Report Button -->
+        <button class="generate-report-btn" id="generateReportBtn">
+          📊 Generate Your Report
+        </button>
+
+        <!-- Appliance List -->
+        <div id="applianceList" class="appliance-list">
+          <p style="color: #88aaff; text-align: center">
+            No appliances added yet.
+          </p>
+        </div>
+
+        <!-- Total from Appliances -->
+        <div class="total-appliance-units">
+          <span>Total from Your Appliances:</span>
+          <span id="totalApplianceUnits">0.00 kWh</span>
+        </div>
+
+        <!-- Bill Breakdown -->
+        <div class="bill-breakdown" id="billBreakdown">
+          <h3 style="margin-bottom: 1rem">📊 Your Bill Breakdown</h3>
+          <div class="breakdown-row">
+            <span>Grid Base Units (Common):</span>
+            <span id="liveUnitsDisplay">124.7 kWh</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Your Appliances Units:</span>
+            <span id="applianceUnitsDisplay">0.0 kWh</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Total Units:</span>
+            <span id="totalUnitsDisplay">124.7 kWh</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Tariff Rate:</span>
+            <span id="tariffRateDisplay">₹3/unit</span>
+          </div>
+          <div class="breakdown-total">
+            <span>Your Bill Amount:</span>
+            <span id="finalBillDisplay">₹374.10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FEEDBACK REPORT SECTION ========== -->
+      <div id="feedbackSection" class="feedback-section hidden">
+        <h3 class="feedback-title">📋 Your Personalized Feedback</h3>
+        <div id="feedbackContent"></div>
+        <button
+          class="btn btn-primary"
+          id="provideFeedbackBtn"
+          style="margin-top: 1rem"
+          onclick="showPage('feedback')"
+        >
+          📝 Provide Detailed Feedback
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== PAYMENT PAGE ========== -->
+    <div id="paymentPage" class="page">
+      <div class="auth-container" style="max-width: 600px">
+        <div class="auth-card">
+          <div style="display: flex; align-items: center; margin-bottom: 2rem">
+            <button class="btn btn-outline" onclick="showPage('dashboard')">
+              ← Back
+            </button>
+            <h2 style="flex: 1; text-align: center">💳 Payment Gateway</h2>
+          </div>
+
+          <!-- Bill Summary -->
+          <div class="bill-breakdown" style="margin-bottom: 2rem">
+            <h3 style="margin-bottom: 0.8rem">📊 Your Bill Summary</h3>
+            <div class="breakdown-row">
+              <span>Total Units:</span>
+              <span id="paymentTotalUnits">124.7 kWh</span>
+            </div>
+            <div class="breakdown-total">
+              <span>Amount to Pay:</span>
+              <span id="paymentAmount">₹374.10</span>
+            </div>
+          </div>
+
+          <!-- Payment Options with Direct Gateway Links -->
+          <div style="text-align: center; margin: 2rem 0">
+            <h3 style="color: #ffff00; margin-bottom: 1rem">
+              Select Payment Method
+            </h3>
+
+            <!-- UPI Apps -->
+            <div style="margin-bottom: 1.5rem">
+              <h4 style="color: #88aaff; margin-bottom: 0.5rem">📱 UPI Apps</h4>
+              <div class="flex-row" style="justify-content: center">
+                <a
+                  href="https://pay.google.com"
+                  target="_blank"
+                  class="gateway-btn gpay-btn"
+                  >Google Pay</a
+                >
+                <a
+                  href="https://www.phonepe.com"
+                  target="_blank"
+                  class="gateway-btn phonepe-btn"
+                  >PhonePe</a
+                >
+                <a
+                  href="https://paytm.com"
+                  target="_blank"
+                  class="gateway-btn paytm-btn"
+                  >Paytm</a
+                >
+                <a
+                  href="https://www.bhimupi.org.in"
+                  target="_blank"
+                  class="gateway-btn bhim-btn"
+                  >BHIM UPI</a
+                >
+              </div>
+            </div>
+
+            <!-- Cards -->
+            <div style="margin-bottom: 1.5rem">
+              <h4 style="color: #88aaff; margin-bottom: 0.5rem">
+                💳 Credit / Debit Cards
+              </h4>
+              <div class="flex-row" style="justify-content: center">
+                <a
+                  href="https://www.razorpay.com"
+                  target="_blank"
+                  class="gateway-btn card-btn"
+                  >Pay with Card</a
+                >
+              </div>
+            </div>
+
+            <!-- Net Banking -->
+            <div style="margin-bottom: 1.5rem">
+              <h4 style="color: #88aaff; margin-bottom: 0.5rem">
+                🏦 Net Banking
+              </h4>
+              <div class="flex-row" style="justify-content: center">
+                <a
+                  href="https://www.razorpay.com"
+                  target="_blank"
+                  class="gateway-btn netbanking-btn"
+                  >Net Banking</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <div id="paymentSuccessMsg" class="success-msg hidden mt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== FEEDBACK PAGE ========== -->
+    <div id="feedbackPage" class="page">
+      <div class="auth-container" style="max-width: 600px">
+        <div class="auth-card">
+          <div style="display: flex; align-items: center; margin-bottom: 2rem">
+            <button class="btn btn-outline" onclick="showPage('dashboard')">
+              ← Back
+            </button>
+            <h2 style="flex: 1; text-align: center">📝 Your Feedback</h2>
+          </div>
+
+          <div class="bill-breakdown" style="margin-bottom: 2rem">
+            <h3 style="margin-bottom: 0.8rem">📊 Current Usage</h3>
+            <div class="breakdown-row">
+              <span>Total Units:</span>
+              <span id="feedbackTotalUnits">124.7 kWh</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Appliances Used:</span>
+              <span id="feedbackAppliancesCount">0</span>
+            </div>
+          </div>
+
+          <form id="feedbackForm">
+            <div class="input-group">
+              <label>Your Name</label>
+              <input type="text" id="feedbackName" readonly />
+            </div>
+
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" id="feedbackEmail" readonly />
+            </div>
+
+            <div class="input-group">
+              <label>Rate Your Experience</label>
+              <div class="rating-stars" id="ratingStars">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+              </div>
+              <input type="hidden" id="rating" value="0" />
+            </div>
+
+            <div class="input-group">
+              <label>How satisfied are you?</label>
+              <select id="satisfaction">
+                <option>Very Satisfied</option>
+                <option>Satisfied</option>
+                <option>Neutral</option>
+                <option>Unsatisfied</option>
+                <option>Very Unsatisfied</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>Suggestions</label>
+              <textarea
+                id="suggestions"
+                rows="4"
+                placeholder="Tell us how we can improve..."
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%">
+              Submit Feedback
+            </button>
+          </form>
+
+          <div id="feedbackSuccess" class="success-msg hidden mt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CONTACT PAGE ========== -->
+    <div id="contactPage" class="page">
+      <div class="auth-container" style="max-width: 600px">
+        <div class="auth-card">
+          <div style="display: flex; align-items: center; margin-bottom: 2rem">
+            <button class="btn btn-outline" onclick="showPage('dashboard')">
+              ← Back
+            </button>
+            <h2 style="flex: 1; text-align: center">🏢 EB Office</h2>
+          </div>
+
+          <!-- Bill Summary before complaint -->
+          <div class="bill-breakdown" style="margin-bottom: 2rem">
+            <h3 style="margin-bottom: 0.8rem">📊 Current Bill Summary</h3>
+            <div class="breakdown-row">
+              <span>Total Units:</span>
+              <span id="contactTotalUnits">124.7 kWh</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Appliances:</span>
+              <span id="contactAppliances">0</span>
+            </div>
+            <div class="breakdown-total">
+              <span>Amount Due:</span>
+              <span id="contactBillAmount">₹374.10</span>
+            </div>
+          </div>
+
+          <form id="complaintForm">
+            <div class="input-group">
+              <label>Username</label>
+              <input type="text" id="compUsername" readonly />
+            </div>
+            <div class="input-group">
+              <label>Email *</label>
+              <input type="email" id="compEmail" required />
+            </div>
+            <div class="input-group">
+              <label>EB Number *</label>
+              <input type="text" id="compEb" required />
+            </div>
+            <div class="input-group">
+              <label>Phone *</label>
+              <input type="tel" id="compPhone" pattern="[0-9]{10}" required />
+            </div>
+            <div class="input-group">
+              <label>Issue Type</label>
+              <select id="compIssue">
+                <option>Voltage Fluctuation</option>
+                <option>Power Outage</option>
+                <option>Meter Problem</option>
+                <option>Billing Query</option>
+                <option>Electrical Leak</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Message *</label>
+              <textarea id="compMsg" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">
+              Submit Complaint
+            </button>
+          </form>
+
+          <div id="complaintSuccess" class="success-msg hidden mt-2"></div>
+
+          <div class="emergency-section">
+            <h4 style="color: #ffff00; margin-bottom: 1rem">
+              🚨 24x7 Emergency
+            </h4>
+            <div class="emergency-numbers">
+              <a href="tel:1800425535">📞 1800-425-535</a>
+              <a href="tel:1912">📞 1912 (Toll Free)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ========== GLOBAL STATE ==========
+      let loggedUser = null;
+      let users = JSON.parse(localStorage.getItem("enerlytics_users") || "[]");
+      let complaints = JSON.parse(
+        localStorage.getItem("enerlytics_complaints") || "[]"
+      );
+      let feedbacks = JSON.parse(
+        localStorage.getItem("enerlytics_feedbacks") || "[]"
+      );
+      let monitorInterval = null;
+
+      // Appliance tracking
+      let appliances = [];
+      let liveUnits = 124.7;
+
+      // Rating state
+      let currentRating = 0;
+
+      // Appliance power ratings (fixed, not shown to user)
+      const appliancePower = {
+        ac: 1500,
+        ac2: 2000,
+        ac3: 1000,
+        fridge: 200,
+        fridge2: 300,
+        tv: 120,
+        tv2: 140,
+        fan: 75,
+        fan2: 50,
+        wm: 800,
+        dryer: 2500,
+        microwave: 1200,
+        geyser: 2000,
+        iron: 1000,
+        computer: 200,
+        laptop: 50,
+        router: 10,
+        charger: 5,
+        waterpump: 750,
+        heater: 1500,
+        custom: 500,
+      };
+
+      const applianceNames = {
+        ac: "Air Conditioner",
+        ac2: "AC 2 Ton",
+        ac3: "AC 1 Ton",
+        fridge: "Refrigerator",
+        fridge2: "Fridge Double Door",
+        tv: "LED TV",
+        tv2: "Smart TV",
+        fan: "Ceiling Fan",
+        fan2: "Table Fan",
+        wm: "Washing Machine",
+        dryer: "Clothes Dryer",
+        microwave: "Microwave",
+        geyser: "Water Geyser",
+        iron: "Electric Iron",
+        computer: "Desktop",
+        laptop: "Laptop",
+        router: "WiFi Router",
+        charger: "Phone Charger",
+        waterpump: "Water Pump",
+        heater: "Room Heater",
+        custom: "Custom Appliance",
+      };
+
+      // ========== PAGE NAVIGATION ==========
+      function showPage(pageName) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+
+        if (pageName === "home")
+          document.getElementById("homePage").classList.add("active");
+        if (pageName === "register")
+          document.getElementById("registerPage").classList.add("active");
+        if (pageName === "login")
+          document.getElementById("loginPage").classList.add("active");
+        if (pageName === "dashboard")
+          document.getElementById("dashboardPage").classList.add("active");
+        if (pageName === "payment")
+          document.getElementById("paymentPage").classList.add("active");
+        if (pageName === "feedback")
+          document.getElementById("feedbackPage").classList.add("active");
+        if (pageName === "contact")
+          document.getElementById("contactPage").classList.add("active");
+
+        updateHeader();
+
+        if (pageName === "dashboard" && loggedUser) {
+          startLiveMonitoring();
+          updateBillBreakdown();
+        }
+
+        if (pageName === "payment" && loggedUser) {
+          updatePaymentPage();
+        }
+
+        if (pageName === "feedback" && loggedUser) {
+          updateFeedbackPage();
+        }
+
+        if (pageName === "contact" && loggedUser) {
+          updateContactBill();
+        }
+      }
+
+      // Update header based on login status
+      function updateHeader() {
+        const header = document.getElementById("headerActions");
+        if (loggedUser) {
+          header.innerHTML = `
+          <span class="user-badge">👤 ${loggedUser.username}</span>
+          <button class="btn btn-outline" onclick="logout()">Logout</button>
+        `;
+        } else {
+          header.innerHTML = `
+          <button class="btn btn-primary" id="loginBtn" onclick="showPage('login')">Login</button>
+        `;
+        }
+      }
+
+      // ========== LOGOUT ==========
+      function logout() {
+        loggedUser = null;
+        sessionStorage.removeItem("currentUser");
+        if (monitorInterval) clearInterval(monitorInterval);
+        showPage("home");
+      }
+
+      // ========== REGISTER LOGIC ==========
+      document
+        .getElementById("registerForm")
+        ?.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("regUsername").value.trim();
+          const email = document.getElementById("regEmail").value.trim();
+          const mobile = document.getElementById("regMobile").value.trim();
+          const eb = document.getElementById("regEb").value.trim();
+          const password = document.getElementById("regPassword").value.trim();
+
+          let isValid = true;
+
+          if (!/^[A-Za-z]+$/.test(username)) {
+            document.getElementById("regUsernameError").innerText =
+              "Username must contain only letters";
+            isValid = false;
+          } else document.getElementById("regUsernameError").innerText = "";
+
+          if (!email.includes("@") || !email.includes(".")) {
+            document.getElementById("regEmailError").innerText =
+              "Enter valid email";
+            isValid = false;
+          } else document.getElementById("regEmailError").innerText = "";
+
+          if (!/^\d{10}$/.test(mobile)) {
+            document.getElementById("regMobileError").innerText =
+              "Mobile must be 10 digits";
+            isValid = false;
+          } else document.getElementById("regMobileError").innerText = "";
+
+          if (!/^[A-Za-z0-9]+$/.test(eb)) {
+            document.getElementById("regEbError").innerText =
+              "EB Number must be alphanumeric";
+            isValid = false;
+          } else document.getElementById("regEbError").innerText = "";
+
+          if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(password)) {
+            document.getElementById("regPasswordError").innerText =
+              "Password must contain letters and numbers";
+            isValid = false;
+          } else document.getElementById("regPasswordError").innerText = "";
+
+          if (!isValid) return;
+
+          if (users.some((u) => u.username === username || u.eb === eb)) {
+            alert("Username or EB Number already exists");
+            return;
+          }
+
+          users.push({ username, email, mobile, eb, password });
+          localStorage.setItem("enerlytics_users", JSON.stringify(users));
+
+          const successMsg = document.getElementById("registerSuccess");
+          successMsg.classList.remove("hidden");
+
+          setTimeout(() => {
+            successMsg.classList.add("hidden");
+            showPage("login");
+            document.getElementById("registerForm").reset();
+          }, 2000);
+        });
+
+      // ========== LOGIN LOGIC ==========
+      document.getElementById("loginForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const identifier = document
+          .getElementById("loginIdentifier")
+          .value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+
+        const user = users.find(
+          (u) => u.username === identifier || u.eb === identifier
+        );
+
+        if (!user || user.password !== password) {
+          document.getElementById("loginError").innerText =
+            "Invalid credentials";
+          document.getElementById("loginError").classList.remove("hidden");
+          return;
+        }
+
+        loggedUser = user;
+        sessionStorage.setItem("currentUser", JSON.stringify(user));
+
+        // Pre-fill forms
+        document.getElementById("compUsername").value = user.username;
+        document.getElementById("compEmail").value = user.email;
+        document.getElementById("compEb").value = user.eb;
+        document.getElementById("compPhone").value = user.mobile;
+        document.getElementById("feedbackName").value = user.username;
+        document.getElementById("feedbackEmail").value = user.email;
+
+        showPage("dashboard");
+      });
+
+      // ========== LIVE MONITORING ==========
+      function calculateBill(units) {
+        if (units <= 100) return units * 3;
+        if (units <= 300) return 300 + (units - 100) * 5;
+        return 300 + 1000 + (units - 300) * 7;
+      }
+
+      function getTariffRate(units) {
+        if (units <= 100) return 3;
+        if (units <= 300) return 5;
+        return 7;
+      }
+
+      function updateBillBreakdown() {
+        const applianceTotal = appliances.reduce(
+          (sum, app) => sum + (app.power * app.hours * app.quantity) / 1000,
+          0
+        );
+        const totalUnits = liveUnits + applianceTotal;
+        const rate = getTariffRate(totalUnits);
+        const bill = calculateBill(totalUnits);
+
+        document.getElementById("liveUnitsDisplay").innerText =
+          liveUnits.toFixed(2) + " kWh";
+        document.getElementById("applianceUnitsDisplay").innerText =
+          applianceTotal.toFixed(2) + " kWh";
+        document.getElementById("totalUnitsDisplay").innerText =
+          totalUnits.toFixed(2) + " kWh";
+        document.getElementById("tariffRateDisplay").innerText =
+          "₹" + rate + "/unit";
+        document.getElementById("finalBillDisplay").innerText =
+          "₹" + bill.toFixed(2);
+        document.getElementById("totalApplianceUnits").innerText =
+          applianceTotal.toFixed(2) + " kWh";
+      }
+
+      function startLiveMonitoring() {
+        if (monitorInterval) clearInterval(monitorInterval);
+
+        monitorInterval = setInterval(() => {
+          const v = Math.floor(Math.random() * 81) + 180;
+          const i = Number((Math.random() * 10 + 5).toFixed(1));
+          const p = Math.round(v * i);
+
+          liveUnits += Number((Math.random() * 0.04 + 0.01).toFixed(3));
+
+          document.getElementById("voltage").innerText = v;
+          document.getElementById("current").innerText = i;
+          document.getElementById("power").innerText = p;
+          document.getElementById("gridStatus").innerText =
+            v < 190 || v > 250 ? "Unstable" : "Stable";
+
+          updateBillBreakdown();
+
+          const alertBanner = document.getElementById("voltageAlert");
+          if (v < 190 || v > 250) {
+            alertBanner.classList.remove("hidden");
+            document.getElementById(
+              "voltageMessage"
+            ).innerText = `⚠️ Current voltage: ${v}V affecting all users`;
+          } else {
+            alertBanner.classList.add("hidden");
+          }
+        }, 2000);
+      }
+
+      // ========== APPLIANCE FUNCTIONS ==========
+      document
+        .getElementById("addApplianceBtn")
+        ?.addEventListener("click", () => {
+          const type = document.getElementById("applianceSelect").value;
+          const hours =
+            parseFloat(document.getElementById("applianceHours").value) || 0;
+          const quantity =
+            parseInt(document.getElementById("applianceQuantity").value) || 1;
+
+          if (hours <= 0) {
+            alert("Please enter valid hours");
+            return;
+          }
+
+          const power = appliancePower[type] || 500;
+
+          appliances.push({
+            name: applianceNames[type] || type,
+            power,
+            hours,
+            quantity,
+          });
+
+          updateApplianceList();
+          updateBillBreakdown();
+
+          document.getElementById("applianceHours").value = "1";
+        });
+
+      document
+        .getElementById("clearAppliancesBtn")
+        ?.addEventListener("click", () => {
+          appliances = [];
+          updateApplianceList();
+          updateBillBreakdown();
+          document.getElementById("feedbackSection").classList.add("hidden");
+        });
+
+      function removeAppliance(index) {
+        appliances.splice(index, 1);
+        updateApplianceList();
+        updateBillBreakdown();
+      }
+
+      function updateApplianceList() {
+        const container = document.getElementById("applianceList");
+        if (appliances.length === 0) {
+          container.innerHTML =
+            '<p style="color:#88aaff; text-align:center;">No appliances added yet.</p>';
+          return;
+        }
+
+        let html = "";
+        appliances.forEach((app, index) => {
+          const units = ((app.power * app.hours * app.quantity) / 1000).toFixed(
+            2
+          );
+          html += `
+          <div class="appliance-item">
+            <span class="name">${app.name} x${app.quantity}</span>
+            <span class="details">${app.hours}h</span>
+            <span class="units">${units} kWh</span>
+            <button class="remove-btn" onclick="removeAppliance(${index})">✕</button>
+          </div>
+        `;
+        });
+        container.innerHTML = html;
+      }
+
+      // ========== OTHER FUNCTIONS ==========
+      document
+        .getElementById("calculateBillBtn")
+        ?.addEventListener("click", () => {
+          updateBillBreakdown();
+          alert(
+            "✅ Bill calculated: " +
+              document.getElementById("finalBillDisplay").innerText
+          );
+        });
+
+      document.getElementById("payNowBtn")?.addEventListener("click", () => {
+        updatePaymentPage();
+        showPage("payment");
+      });
+
+      document
+        .getElementById("generateReportBtn")
+        ?.addEventListener("click", () => {
+          generateFeedbackReport();
+        });
+
+      function generateFeedbackReport() {
+        const applianceTotal = appliances.reduce(
+          (sum, app) => sum + (app.power * app.hours * app.quantity) / 1000,
+          0
+        );
+        const totalUnits = liveUnits + applianceTotal;
+        const bill = calculateBill(totalUnits);
+        const rate = getTariffRate(totalUnits);
+
+        let highestAppliance = null;
+        let highestConsumption = 0;
+
+        appliances.forEach((app) => {
+          const consumption = (app.power * app.hours * app.quantity) / 1000;
+          if (consumption > highestConsumption) {
+            highestConsumption = consumption;
+            highestAppliance = app;
+          }
+        });
+
+        const recommendations = [];
+
+        if (applianceTotal > 200) {
+          recommendations.push(
+            "🔴 Your appliance usage is very high. Consider reducing usage."
+          );
+        }
+
+        if (highestAppliance && highestConsumption > 100) {
+          recommendations.push(
+            `⚠️ Your ${
+              highestAppliance.name
+            } is consuming ${highestConsumption.toFixed(
+              2
+            )} kWh. Try to limit usage.`
+          );
+        }
+
+        if (totalUnits > 300) {
+          recommendations.push(
+            "💰 You are in the highest tariff slab (₹7/unit). Reducing consumption by 20% could save ₹" +
+              (bill * 0.2).toFixed(2)
+          );
+        }
+
+        let feedbackHTML = `
+        <div class="feedback-grid">
+          <div class="feedback-card">
+            <h4>Total Consumption</h4>
+            <div class="feedback-value">${totalUnits.toFixed(2)} kWh</div>
+          </div>
+          <div class="feedback-card">
+            <h4>Estimated Bill</h4>
+            <div class="feedback-value">₹${bill.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+
+        feedbackHTML += `<div class="savings-tip"><h4>💡 Recommendations</h4>`;
+        recommendations.forEach((rec) => {
+          feedbackHTML += `<p style="margin:0.5rem 0;">${rec}</p>`;
+        });
+        feedbackHTML += `</div>`;
+
+        document.getElementById("feedbackContent").innerHTML = feedbackHTML;
+        document.getElementById("feedbackSection").classList.remove("hidden");
+      }
+
+      function updatePaymentPage() {
+        const applianceTotal = appliances.reduce(
+          (sum, app) => sum + (app.power * app.hours * app.quantity) / 1000,
+          0
+        );
+        const totalUnits = liveUnits + applianceTotal;
+        const bill = calculateBill(totalUnits);
+
+        document.getElementById("paymentTotalUnits").innerText =
+          totalUnits.toFixed(2) + " kWh";
+        document.getElementById("paymentAmount").innerText =
+          "₹" + bill.toFixed(2);
+      }
+
+      function setRating(rating) {
+        currentRating = rating;
+        document.getElementById("rating").value = rating;
+
+        const stars = document.querySelectorAll(".star");
+        stars.forEach((star, index) => {
+          if (index < rating) {
+            star.classList.add("selected");
+          } else {
+            star.classList.remove("selected");
+          }
+        });
+      }
+
+      function updateFeedbackPage() {
+        const applianceTotal = appliances.reduce(
+          (sum, app) => sum + (app.power * app.hours * app.quantity) / 1000,
+          0
+        );
+        const totalUnits = liveUnits + applianceTotal;
+
+        document.getElementById("feedbackTotalUnits").innerText =
+          totalUnits.toFixed(2) + " kWh";
+        document.getElementById("feedbackAppliancesCount").innerText =
+          appliances.length;
+      }
+
+      document
+        .getElementById("feedbackForm")
+        ?.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const rating = currentRating;
+          const satisfaction = document.getElementById("satisfaction").value;
+          const suggestions = document
+            .getElementById("suggestions")
+            .value.trim();
+
+          if (rating === 0) {
+            alert("Please rate your experience");
+            return;
+          }
+
+          const feedbackId =
+            "FB" + Date.now() + Math.floor(Math.random() * 1000);
+
+          feedbacks.push({
+            id: feedbackId,
+            username: loggedUser?.username || "guest",
+            rating,
+            satisfaction,
+            suggestions,
+            date: new Date().toISOString(),
+          });
+          localStorage.setItem(
+            "enerlytics_feedbacks",
+            JSON.stringify(feedbacks)
+          );
+
+          const successDiv = document.getElementById("feedbackSuccess");
+          successDiv.innerHTML = `✅ Thank you for your feedback!<br>Feedback ID: ${feedbackId}`;
+          successDiv.classList.remove("hidden");
+
+          document.getElementById("suggestions").value = "";
+          setRating(0);
+          document.getElementById("satisfaction").value = "Very Satisfied";
+
+          setTimeout(() => {
+            successDiv.classList.add("hidden");
+            showPage("dashboard");
+          }, 3000);
+        });
+
+      function updateContactBill() {
+        const applianceTotal = appliances.reduce(
+          (sum, app) => sum + (app.power * app.hours * app.quantity) / 1000,
+          0
+        );
+        const totalUnits = liveUnits + applianceTotal;
+        const bill = calculateBill(totalUnits);
+
+        document.getElementById("contactTotalUnits").innerText =
+          totalUnits.toFixed(2) + " kWh";
+        document.getElementById("contactAppliances").innerText =
+          appliances.length;
+        document.getElementById("contactBillAmount").innerText =
+          "₹" + bill.toFixed(2);
+      }
+
+      document
+        .getElementById("submitQueryBtn")
+        ?.addEventListener("click", () => {
+          const query = document.getElementById("queryText").value.trim();
+          if (query) {
+            document.getElementById("compMsg").value = query;
+          }
+          updateContactBill();
+          showPage("contact");
+        });
+
+      document
+        .getElementById("complaintForm")
+        ?.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("compEmail").value.trim();
+          const eb = document.getElementById("compEb").value.trim();
+          const phone = document.getElementById("compPhone").value.trim();
+          const issue = document.getElementById("compIssue").value;
+          const msg = document.getElementById("compMsg").value.trim();
+
+          if (!email.includes("@") || !email.includes(".")) {
+            alert("Enter valid email");
+            return;
+          }
+          if (!/^\d{10}$/.test(phone)) {
+            alert("Enter valid 10-digit phone");
+            return;
+          }
+          if (!msg) {
+            alert("Enter your message");
+            return;
+          }
+
+          const complaintId =
+            "CMP" + Date.now() + Math.floor(Math.random() * 1000);
+
+          complaints.push({
+            id: complaintId,
+            username: loggedUser?.username || "guest",
+            email,
+            eb,
+            phone,
+            issue,
+            msg,
+            date: new Date().toISOString(),
+          });
+          localStorage.setItem(
+            "enerlytics_complaints",
+            JSON.stringify(complaints)
+          );
+
+          const successDiv = document.getElementById("complaintSuccess");
+          successDiv.innerHTML = `✅ Complaint Registered Successfully!<br>ID: ${complaintId}`;
+          successDiv.classList.remove("hidden");
+
+          document.getElementById("compMsg").value = "";
+
+          setTimeout(() => {
+            successDiv.classList.add("hidden");
+          }, 5000);
+        });
+
+      window.removeAppliance = removeAppliance;
+      window.setRating = setRating;
+
+      // ========== INITIALIZATION ==========
+      (function init() {
+        const sessionUser = sessionStorage.getItem("currentUser");
+        if (sessionUser) {
+          loggedUser = JSON.parse(sessionUser);
+          updateHeader();
+
+          document.getElementById("compUsername").value = loggedUser.username;
+          document.getElementById("compEmail").value = loggedUser.email;
+          document.getElementById("compEb").value = loggedUser.eb;
+          document.getElementById("compPhone").value = loggedUser.mobile;
+          document.getElementById("feedbackName").value = loggedUser.username;
+          document.getElementById("feedbackEmail").value = loggedUser.email;
+
+          showPage("dashboard");
+        } else {
+          showPage("home");
+        }
+      })();
+    </script>
+  </body>
+</html>
